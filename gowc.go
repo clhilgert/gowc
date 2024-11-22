@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -8,7 +9,10 @@ import (
 )
 
 func main() {
+
 	bytesFlag := flag.Bool("c", false, "Enable -c flag")
+	linesFlag := flag.Bool("l", false, "Enable -l flag")
+
 	flag.Parse()
 	args := flag.Args()
 
@@ -26,6 +30,9 @@ func main() {
 
 	if *bytesFlag {
 		countBytes(file, filename)
+	}
+	if *linesFlag {
+		countLines(file, filename)
 	}
 
 }
@@ -47,4 +54,24 @@ func countBytes(file *os.File, filename string) {
 		}
 	}
 	fmt.Println(totalBytes, filename)
+}
+
+func countLines(file *os.File, filename string) {
+	buffer := make([]byte, 1024)
+	count := 0
+	linebreak := []byte{'\n'}
+
+	for {
+		c, err := file.Read(buffer)
+		if err != nil && err.Error() != "EOF" {
+			fmt.Println("Error reading file:", err)
+			return
+		}
+		count += bytes.Count(buffer[:c], linebreak)
+
+		if err != nil {
+			break
+		}
+	}
+	fmt.Println(count, filename)
 }
