@@ -20,23 +20,23 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 
+	var file *os.File
 	if len(args) == 0 {
-		fmt.Println("No filename provided")
-		return
+		file = os.Stdin
+	} else {
+		var err error
+		file, err = os.Open(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
 	}
-	filename := args[0]
 
 	if !*lineFlag && !*wordFlag && !*charFlag && !*byteFlag {
 		*charFlag = true
 		*lineFlag = true
 		*wordFlag = true
 	}
-
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
 
 	var result []string
 
@@ -58,7 +58,11 @@ func main() {
 	}
 
 	if len(result) > 0 {
-		fmt.Println(strings.Join(result, " "), filename)
+		if len(args) > 0 {
+			fmt.Println(strings.Join(result, " "), args[0])
+		} else {
+			fmt.Println(strings.Join(result, " "))
+		}
 	}
 }
 
