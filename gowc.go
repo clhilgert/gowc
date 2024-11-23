@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"unicode/utf8"
 )
 
 func main() {
 
-	bytesFlag := flag.Bool("c", false, "Enable -c flag")
-	linesFlag := flag.Bool("l", false, "Enable -l flag")
-	wordsFlag := flag.Bool("w", false, "Enable -w flag")
+	byteFlag := flag.Bool("c", false, "Enable -c flag")
+	lineFlag := flag.Bool("l", false, "Enable -l flag")
+	wordFlag := flag.Bool("w", false, "Enable -w flag")
+	charFlag := flag.Bool("m", false, "Enable -w flag")
 
 	flag.Parse()
 	args := flag.Args()
@@ -29,16 +31,18 @@ func main() {
 	}
 	defer file.Close()
 
-	if *bytesFlag {
+	if *byteFlag {
 		countBytes(file, filename)
 	}
-	if *linesFlag {
+	if *lineFlag {
 		countLines(file, filename)
 	}
-	if *wordsFlag {
+	if *wordFlag {
 		countWords(file, filename)
 	}
-
+	if *charFlag {
+		countChars(file, filename)
+	}
 }
 
 func countBytes(file *os.File, filename string) {
@@ -63,7 +67,7 @@ func countBytes(file *os.File, filename string) {
 func countLines(file *os.File, filename string) {
 	buffer := make([]byte, 1024)
 	count := 0
-	linebreak := []byte{'\n'}
+	sep := []byte{'\n'}
 
 	for {
 		c, err := file.Read(buffer)
@@ -71,7 +75,7 @@ func countLines(file *os.File, filename string) {
 			fmt.Println("Error reading file:", err)
 			return
 		}
-		count += bytes.Count(buffer[:c], linebreak)
+		count += bytes.Count(buffer[:c], sep)
 
 		if err != nil {
 			break
@@ -83,7 +87,7 @@ func countLines(file *os.File, filename string) {
 func countWords(file *os.File, filename string) {
 	buffer := make([]byte, 1024)
 	count := 0
-	wordSep := []byte{' '}
+	sep := []byte{' '}
 
 	for {
 		c, err := file.Read(buffer)
@@ -91,7 +95,26 @@ func countWords(file *os.File, filename string) {
 			fmt.Println("Error reading file:", err)
 			return
 		}
-		count += bytes.Count(buffer[:c], wordSep)
+		count += bytes.Count(buffer[:c], sep)
+
+		if err != nil {
+			break
+		}
+	}
+	fmt.Println(count, filename)
+}
+
+func countChars(file *os.File, filename string) {
+	buffer := make([]byte, 1024)
+	count := 0
+
+	for {
+		n, err := file.Read(buffer)
+		if err != nil && err.Error() != "EOF" {
+			fmt.Println("Error reading file:", err)
+			return
+		}
+		count += utf8.RuneCount(buffer[:n])
 
 		if err != nil {
 			break
