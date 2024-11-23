@@ -7,15 +7,15 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
 func main() {
-
-	byteFlag := flag.Bool("c", false, "Enable -c flag")
 	lineFlag := flag.Bool("l", false, "Enable -l flag")
 	wordFlag := flag.Bool("w", false, "Enable -w flag")
-	charFlag := flag.Bool("m", false, "Enable -w flag")
+	charFlag := flag.Bool("m", false, "Enable -m flag")
+	byteFlag := flag.Bool("c", false, "Enable -c flag")
 
 	flag.Parse()
 	args := flag.Args()
@@ -26,27 +26,40 @@ func main() {
 	}
 	filename := args[0]
 
+	if !*lineFlag && !*wordFlag && !*charFlag && !*byteFlag {
+		*charFlag = true
+		*lineFlag = true
+		*wordFlag = true
+	}
+
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	counts := ""
+	var result []string
 
-	if *byteFlag {
-		counts += countBytes(file)
-	}
 	if *lineFlag {
-		counts += countLines(file)
+		file.Seek(0, 0)
+		result = append(result, countLines(file))
 	}
 	if *wordFlag {
-		counts += countWords(file)
+		file.Seek(0, 0)
+		result = append(result, countWords(file))
 	}
 	if *charFlag {
-		counts += countChars(file)
+		file.Seek(0, 0)
+		result = append(result, countChars(file))
 	}
-	fmt.Println(counts, filename)
+	if *byteFlag {
+		file.Seek(0, 0)
+		result = append(result, countBytes(file))
+	}
+
+	if len(result) > 0 {
+		fmt.Println(strings.Join(result, " "), filename)
+	}
 }
 
 func countBytes(file *os.File) string {
