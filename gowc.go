@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"unicode/utf8"
 )
 
@@ -31,21 +32,24 @@ func main() {
 	}
 	defer file.Close()
 
+	counts := ""
+
 	if *byteFlag {
-		countBytes(file, filename)
+		counts += countBytes(file)
 	}
 	if *lineFlag {
-		countLines(file, filename)
+		counts += countLines(file)
 	}
 	if *wordFlag {
-		countWords(file, filename)
+		counts += countWords(file)
 	}
 	if *charFlag {
-		countChars(file, filename)
+		counts += countChars(file)
 	}
+	fmt.Println(counts, filename)
 }
 
-func countBytes(file *os.File, filename string) {
+func countBytes(file *os.File) string {
 	buffer := make([]byte, 1024)
 	totalBytes := int64(0)
 
@@ -53,7 +57,7 @@ func countBytes(file *os.File, filename string) {
 		n, err := file.Read(buffer)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Println("Error reading file:", err)
-			return
+			return "Error"
 		}
 		totalBytes += int64(n)
 
@@ -61,10 +65,10 @@ func countBytes(file *os.File, filename string) {
 			break
 		}
 	}
-	fmt.Println(totalBytes, filename)
+	return strconv.FormatInt(totalBytes, 10)
 }
 
-func countLines(file *os.File, filename string) {
+func countLines(file *os.File) string {
 	buffer := make([]byte, 1024)
 	count := 0
 	sep := []byte{'\n'}
@@ -73,7 +77,7 @@ func countLines(file *os.File, filename string) {
 		c, err := file.Read(buffer)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Println("Error reading file:", err)
-			return
+			return "Error"
 		}
 		count += bytes.Count(buffer[:c], sep)
 
@@ -81,10 +85,11 @@ func countLines(file *os.File, filename string) {
 			break
 		}
 	}
-	fmt.Println(count, filename)
+	return strconv.FormatInt(int64(count), 10)
+
 }
 
-func countWords(file *os.File, filename string) {
+func countWords(file *os.File) string {
 	buffer := make([]byte, 1024)
 	count := 0
 	sep := []byte{' '}
@@ -93,7 +98,7 @@ func countWords(file *os.File, filename string) {
 		c, err := file.Read(buffer)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Println("Error reading file:", err)
-			return
+			return "Error"
 		}
 		count += bytes.Count(buffer[:c], sep)
 
@@ -101,24 +106,24 @@ func countWords(file *os.File, filename string) {
 			break
 		}
 	}
-	fmt.Println(count, filename)
+	return strconv.FormatInt(int64(count), 10)
 }
 
-func countChars(file *os.File, filename string) {
+func countChars(file *os.File) string {
 	buffer := make([]byte, 1024)
 	count := 0
 
 	for {
-		n, err := file.Read(buffer)
+		c, err := file.Read(buffer)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Println("Error reading file:", err)
-			return
+			return "Error"
 		}
-		count += utf8.RuneCount(buffer[:n])
+		count += utf8.RuneCount(buffer[:c])
 
 		if err != nil {
 			break
 		}
 	}
-	fmt.Println(count, filename)
+	return strconv.FormatInt(int64(count), 10)
 }
