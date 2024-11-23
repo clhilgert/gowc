@@ -12,6 +12,7 @@ func main() {
 
 	bytesFlag := flag.Bool("c", false, "Enable -c flag")
 	linesFlag := flag.Bool("l", false, "Enable -l flag")
+	wordsFlag := flag.Bool("w", false, "Enable -w flag")
 
 	flag.Parse()
 	args := flag.Args()
@@ -33,6 +34,9 @@ func main() {
 	}
 	if *linesFlag {
 		countLines(file, filename)
+	}
+	if *wordsFlag {
+		countWords(file, filename)
 	}
 
 }
@@ -68,6 +72,26 @@ func countLines(file *os.File, filename string) {
 			return
 		}
 		count += bytes.Count(buffer[:c], linebreak)
+
+		if err != nil {
+			break
+		}
+	}
+	fmt.Println(count, filename)
+}
+
+func countWords(file *os.File, filename string) {
+	buffer := make([]byte, 1024)
+	count := 0
+	wordSep := []byte{' '}
+
+	for {
+		c, err := file.Read(buffer)
+		if err != nil && err.Error() != "EOF" {
+			fmt.Println("Error reading file:", err)
+			return
+		}
+		count += bytes.Count(buffer[:c], wordSep)
 
 		if err != nil {
 			break
