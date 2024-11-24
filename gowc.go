@@ -109,15 +109,14 @@ func countLines(file *os.File) string {
 func countWords(file *os.File) string {
 	buffer := make([]byte, 1024)
 	count := 0
-	sep := []byte{' '}
 
 	for {
-		c, err := file.Read(buffer)
+		n, err := file.Read(buffer)
 		if err != nil && err.Error() != "EOF" {
 			fmt.Println("Error reading file:", err)
 			return "Error"
 		}
-		count += bytes.Count(buffer[:c], sep)
+		count += len(strings.Fields(string(buffer[:n])))
 
 		if err != nil {
 			break
